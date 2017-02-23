@@ -1,0 +1,41 @@
+"visible"|"firstName"|"lastName"|"email"|"street"|"city"|"state"|"zipCode"|"phoneNumber"|"studioName"|"webUrl"|"slug"|"descriptiveNoun1"|"descriptiveNoun2"|"descriptiveNoun3"|"artistBio"|"education"|"recentWork"|"recentAwards"|"resume"|"profilePicture"|"bannerPicture"|"otherMedia"|"youtubeLink"|"createdAt"
+
+
+
+
+visible: false,
+		contactInformation:{
+			firstName: null,
+			lastName: null,
+			email: null,
+			address: {},
+			phoneNumber: null,
+			studioName: null,
+			webUrl: null
+		},
+		profileInformation:{
+			descriptiveNoun1: null,
+			descriptiveNoun2: null,
+			descriptiveNoun3: null,
+			personalDescription: null,
+			preferredActivity1: null,
+			preferredActivity2: null,
+			preferredActivity3: null,
+			freeTime: null,
+			customForm: null,
+			customDescription: null
+		},
+		additionalInformation:{
+			education: null,
+			recentWork: null,
+			recentAwards: null,
+			resume: null
+		},
+		mediaInformation:{
+			profilePicture: null,
+			bannerPicture: null,
+			otherMedia: null,
+			youtubeLink: null
+		},
+		createdAt: new Date(),
+		updatedAt: new Date()
