@@ -1,0 +1,3 @@
+firstName,lastName,email,street,city,state,zipCode,phoneNumber,studioName,webUrl,descriptiveNoun1,descriptiveNoun2,descriptiveNoun3,customDescription,missingSomething,education,recentWork,recentAwards,resume,profilePicture,bannerPicture,otherMedia,youtubeLink
+David,Alfonso,davicillo@david.es,1913 Anacapa,Irvine,CA,92602,9496545632,,,Cool,Top,Super,"custom, description, of myself",missing something,my education,my work,my awards,my-resume.doc,./my-profilepicture.jpg,my-bannerpicture.jpg,,
+Elise,Boivin,Elise@artlyowl.com,2134 street,San Francisco,CA,94104,5689874565,My studio,http://www.artlyowl.com,Admin,CEO,Entrepreneur,I have my own art company!,And I love it,Arts education,,Best company,,./my-profilepicture.jpg,my-bannerpicture.jpg,,

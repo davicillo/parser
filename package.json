@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.18.0",
-    "babyparse": "^0.4.6"
+    "babyparse": "^0.4.6",
+    "mongodb": "^2.2.24"
   }
 }
