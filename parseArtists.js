@@ -86,9 +86,9 @@ rows.forEach(function(row){
 	newArtist.profileInformation.customDescription = row.customDescription;
 	newArtist.profileInformation.missingSomething = row.missingSomething;
 	newArtist.profileInformation.artistBio = row.customDescription+'\n\n'+row.missingSomething;
-	newArtist.additionalInformation.education = [row.education];
-	newArtist.additionalInformation.recentWork = [row.recentWork];
-	newArtist.additionalInformation.recentAwards = [row.recentAwards];
+	newArtist.additionalInformation.education = row.education.split('|');
+	newArtist.additionalInformation.recentWork = row.recentWork.split('|');
+	newArtist.additionalInformation.recentAwards = row.recentAwards.split('|');
 	newArtist.additionalInformation.resume = row.resume;
 	newArtist.mediaInformation.profilePicture = row.profilePicture;
 	newArtist.mediaInformation.bannerPicture = row.bannerPicture;
