@@ -4,7 +4,9 @@
   "description": "",
   "main": "parser.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "artists": "node parseArtists.js --file process.env.file || artists.csv",
+    "artworks": "node parseArtworks.js --file process.env.file || artwork.csv"
   },
   "author": "",
   "license": "ISC",

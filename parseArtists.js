@@ -16,7 +16,8 @@ CustomPKFactory.createPk = function() {
 	return Date.now().toString();
 }
 
-var mongoUrl = 'mongodb://localhost:3001/meteor';
+//var mongoUrl = 'mongodb://localhost:3001/meteor';
+var mongoUrl = 'mongodb://heroku_plqblm1j:rkptj63jetgh9sa2i2gi5sqo74@ds019976.mlab.com:19976/heroku_plqblm1j'
 
 let emptyArtist = {
 	visible: false,
@@ -57,12 +58,15 @@ let emptyArtist = {
 
 }
 
+var file = process.env.npm_config_file || "artist.csv"
+console.log(file)
+
 var config = {
 	header:true,
 	skipEmptyLines:true,
 	//dynamicTyping:true
 };
-parsed = Baby.parseFiles("sample_artist2.csv", config);
+parsed = Baby.parseFiles(file, config);
 
 rows = parsed.data;
 
