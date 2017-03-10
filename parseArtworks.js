@@ -112,6 +112,29 @@ rows.forEach(function(row){
 	newArtwork.artworkConfirmation.confirmed = row.confirmed.toLowerCase() === "true";
 	newArtwork.artworkConfirmation.signature = row.signature;
 	newArtwork.createdAt = new Date();
+	//Orientation
+	if(newArtwork.artworkInformation.heightUnframed > newArtwork.artworkInformation.widthUnframed){
+		newArtwork.orientation = 'vertical';
+	}
+	else if(newArtwork.artworkInformation.heightUnframed < newArtwork.artworkInformation.widthUnframed){
+		newArtwork.orientation = 'horizontal';
+	}
+	else{
+		newArtwork.orientation = 'square';
+	}
+	//Size
+	let surface = newArtwork.artworkInformation.heightUnframed * newArtwork.artworkInformation.widthUnframed;
+	if(surface <= 144){
+		newArtwork.size = 'small';
+	}
+	else if(surface > 144 && surface < 400){
+		newArtwork.size = 'medium';
+	}
+	else{
+		newArtwork.size = 'big';
+	}
+
+
 	//console.log(newArtwork)
 	if(isValid(newArtwork)){
 		MongoClient.connect(mongoUrl, {pkFactory: CustomPKFactory}, function (err, db) {
