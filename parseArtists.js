@@ -16,47 +16,48 @@ CustomPKFactory.createPk = function() {
 	return Date.now().toString();
 }
 
-//var mongoUrl = 'mongodb://localhost:3001/meteor';
-var mongoUrl = 'mongodb://heroku_plqblm1j:rkptj63jetgh9sa2i2gi5sqo74@ds019976.mlab.com:19976/heroku_plqblm1j'
+var mongoUrl = 'mongodb://localhost:3501/meteor';
+//var mongoUrl = 'mongodb://heroku_plqblm1j:rkptj63jetgh9sa2i2gi5sqo74@ds019976.mlab.com:19976/heroku_plqblm1j'
 
-let emptyArtist = {
+const emptyArtist = {
 	visible: false,
-	contactInformation:{
-		firstName: null,
-		lastName: null,
-		email: null,
-		address: {},
-		phoneNumber: null,
-		studioName: null,
-		webUrl: null
+	contactInformation: {
+	  firstName: null,
+	  lastName: null,
+	  displayName: null,
+	  email: null,
+	  address: {},
+	  phoneNumber: null,
+	  studioName: null,
+	  studioAddress: {},
+	  webUrl: null,
 	},
-	profileInformation:{
-		descriptiveNoun1: null,
-		descriptiveNoun2: null,
-		descriptiveNoun3: null,
-		personalDescription: null,
-		preferredActivity1: null,
-		preferredActivity2: null,
-		preferredActivity3: null,
-		freeTime: null,
-		customForm: null,
-		customDescription: null
+	profileInformation: {
+	  descriptiveNoun1: null,
+	  descriptiveNoun2: null,
+	  descriptiveNoun3: null,
+	  personalDescription: null,
+	  preferredActivity1: null,
+	  preferredActivity2: null,
+	  preferredActivity3: null,
+	  freeTime: null,
+	  customForm: null,
+	  customDescription: null,
 	},
-	additionalInformation:{
-		education: null,
-		recentWork: null,
-		recentAwards: null,
-		resume: null
+	additionalInformation: {
+	  education: null,
+	  recentWork: null,
+	  recentAwards: null,
+	  resume: null,
 	},
-	mediaInformation:{
-		profilePicture: null,
-		bannerPicture: null,
-		otherMedia: null,
-		youtubeLink: null
+	mediaInformation: {
+	  profilePicture: null,
+	  bannerPicture: null,
+	  otherMedia: null,
+	  youtubeLink: null,
 	},
-	createdAt: null,
-
-}
+	createdAt: new Date(),
+};
 
 var file = process.env.npm_config_file || "artist.csv"
 console.log(file)
@@ -75,6 +76,7 @@ rows.forEach(function(row){
 	var newArtist = (JSON.parse(JSON.stringify(emptyArtist)));
 	newArtist.contactInformation.firstName = row.firstName;
 	newArtist.contactInformation.lastName = row.lastName;
+	newArtist.contactInformation.displayName = row.displayName;
 	newArtist.contactInformation.email = row.email;
 	newArtist.contactInformation.address.street = row.street;
 	newArtist.contactInformation.address.city = row.city;
@@ -82,8 +84,12 @@ rows.forEach(function(row){
 	newArtist.contactInformation.address.zipCode = row.zipCode;
 	newArtist.contactInformation.phoneNumber = row.phoneNumber;
 	newArtist.contactInformation.studioName = row.studioName;
+	newArtist.contactInformation.studioAddress.street = row.studioStreet;
+	newArtist.contactInformation.studioAddress.city = row.studioCity;
+	newArtist.contactInformation.studioAddress.state = row.studioState;
+	newArtist.contactInformation.studioAddress.zipCode = row.studioZipCode;
 	newArtist.contactInformation.webUrl = row.webUrl;
-	newArtist.contactInformation.slug = row.firstName.replace(/\s+/g, '-').toLowerCase()+'-'+row.lastName.replace(/\s+/g, '-').toLowerCase();
+	newArtist.contactInformation.slug = row.displayName.replace(/\s+/g, '-').toLowerCase();
 	newArtist.profileInformation.descriptiveNoun1 = row.descriptiveNoun1;
 	newArtist.profileInformation.descriptiveNoun2 = row.descriptiveNoun2;
 	newArtist.profileInformation.descriptiveNoun3 = row.descriptiveNoun3;

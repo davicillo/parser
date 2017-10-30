@@ -2,6 +2,8 @@ var Baby = require('babyparse')
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var fs = require('fs');
+require('gm-base64');
+var gm = require('gm').subClass({ imageMagick: true });
 
 var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./awsconfig.json');
@@ -16,16 +18,16 @@ CustomPKFactory.createPk = function() {
 	return Date.now().toString();
 }
 
-//var mongoUrl = 'mongodb://localhost:3001/meteor';
-var mongoUrl = 'mongodb://heroku_plqblm1j:rkptj63jetgh9sa2i2gi5sqo74@ds019976.mlab.com:19976/heroku_plqblm1j'
+var mongoUrl = 'mongodb://localhost:3501/meteor';
+//var mongoUrl = 'mongodb://heroku_plqblm1j:rkptj63jetgh9sa2i2gi5sqo74@ds019976.mlab.com:19976/heroku_plqblm1j'
 
-let emptyArtwork = {
+const emptyArtwork = {
 	visible: false,
 	featured: false,
 	artistId: null,
 	sold: false,
 	artworkInformation: {
-      title: null,
+	  title: null,
 	  series: null,
 	  price: null,
 	  framed: null,
@@ -41,27 +43,39 @@ let emptyArtwork = {
 	  typeOfWork: null,
 	  editionOf: null,
 	  remaining: null,
+	  addition: null,
 	  inspiration: null,
 	  currentLocation: null,
 	  otherLocation: {
-	  	name: null,
-	  	address:{}
+		name: null,
+		address: {},
 	  },
-	  exhibitionDate: null
-  },
-  artworkImages: {
-    primaryImage: null,
+	  exhibitionDate: null,
+	},
+	artworkImages: {
+	  primaryImage: null,
 	  scaleImage: null,
 	  detailImage: null,
-	  additionalImage1:null,
-	  additionalImage2:null
-  },
-  artworkConfirmation: {
-    confirmed: null,
-	signature: null
-  },
-  createdAt: null
-}
+	  additionalImage1: null,
+	  additionalImage2: null,
+	},
+	shippingOptions: {
+	  pickupInStudio: {
+		allow: true,
+		price: 0,
+	  },
+	  shipping: {
+		allow: false,
+		boxRef: 0,
+		boxDimWeight: 0,
+	  },
+	},
+	artworkConfirmation: {
+	  confirmed: null,
+	  signature: null,
+	},
+	createdAt: new Date(),
+};
 
 var file = process.env.npm_config_file || "artwork.csv"
 console.log(file)
@@ -75,8 +89,7 @@ parsed = Baby.parseFiles(file, config);
 
 rows = parsed.data;
 rows.forEach(function(row){
-	var firstName = row.artistFirstName;
-	var lastName = row.artistLastName;
+	var displayName = row.artistDisplayName;
 
 	var newArtwork = (JSON.parse(JSON.stringify(emptyArtwork)));
 	newArtwork.sold = row.sold.toLowerCase() === 'true';
@@ -96,6 +109,7 @@ rows.forEach(function(row){
 	newArtwork.artworkInformation.typeOfWork = row.typeOfWork;
 	newArtwork.artworkInformation.editionOf = Number(row.editionOf);
 	newArtwork.artworkInformation.remaining = Number(row.remaining);
+	newArtwork.artworkInformation.addition = row.addition;
 	newArtwork.artworkInformation.inspiration = row.inspiration;
 	newArtwork.artworkInformation.currentLocation = row.currentLocation;
 	newArtwork.artworkInformation.otherLocation.name = row.locationName;
@@ -109,6 +123,11 @@ rows.forEach(function(row){
 	newArtwork.artworkImages.detailImage = row.detailImage;
 	newArtwork.artworkImages.additionalImage1 = row.additionalImage1;
 	newArtwork.artworkImages.additionalImage2 = row.additionalImage2;
+	newArtwork.shippingOptions.pickupInStudio.allow = row.pickupInStudio,
+	newArtwork.shippingOptions.pickupInStudio.price = row.pickupPrice,
+	newArtwork.shippingOptions.shipping.allow = row.allowShipping,
+	newArtwork.shippingOptions.shipping.boxRef = row.boxRef,
+	newArtwork.shippingOptions.shipping.boxDimWeight = row.boxDimWeight,
 	newArtwork.artworkConfirmation.confirmed = row.confirmed.toLowerCase() === "true";
 	newArtwork.artworkConfirmation.signature = row.signature;
 	newArtwork.createdAt = new Date();
@@ -145,12 +164,12 @@ rows.forEach(function(row){
 		    console.log('Connection established to', mongoUrl);
 		    var artists = db.collection('Artists');
 		    var collection = db.collection('Artworks');
-		    artists.findOne({'contactInformation.slug': firstName.replace(/\s+/g, '-').toLowerCase()+'-'+lastName.replace(/\s+/g, '-').toLowerCase()}, function (err, document) {
+		    artists.findOne({'contactInformation.slug': displayName.replace(/\s+/g, '-').toLowerCase()}, function (err, document) {
 		      if (err) {
 		        console.log(err);
 		        db.close();
 		      } else if (!document) {
-		        console.log(`[ERROR]: No document found for ${firstName} ${lastName}`);
+		        console.log(`[ERROR]: No document found for ${displayName}`);
 		        db.close();
 		      } else {
 		      	var artistId = document._id;
@@ -161,27 +180,37 @@ rows.forEach(function(row){
 			      } else {
 			        console.log('Inserted document into the "Artworks" collection. The documents inserted with "_id" are:', result.insertedIds);
 			        var itemId = result.insertedIds;
-			        uploadImage(`${artistId}/artwork/${itemId}/${newArtwork.artworkInformation.title.replace(/\s+/g, '-').toLowerCase()}-primaryImage`, newArtwork.artworkImages.primaryImage, 'image/jpeg', function(err, url){
-			        	updateUrl(itemId,{'artworkImages.primaryImage':url});
-			        });
-			        uploadImage(`${artistId}/artwork/${itemId}/${newArtwork.artworkInformation.title.replace(/\s+/g, '-').toLowerCase()}-scaleImage`, newArtwork.artworkImages.scaleImage, 'image/jpeg', function(err, url){
-			        	updateUrl(itemId,{'artworkImages.scaleImage':url});
-			        });
-			        uploadImage(`${artistId}/artwork/${itemId}/${newArtwork.artworkInformation.title.replace(/\s+/g, '-').toLowerCase()}-detailImage`, newArtwork.artworkImages.detailImage, 'image/jpeg', function(err, url){
-			        	updateUrl(itemId,{'artworkImages.detailImage':url});
-			        });
-			        uploadImage(`${artistId}/artwork/${itemId}/${newArtwork.artworkInformation.title.replace(/\s+/g, '-').toLowerCase()}-signature`, newArtwork.artworkConfirmation.signature, 'image/jpeg', function(err, url){
-			        	updateUrl(itemId,{'artworkConfirmation.signature':url});
-			        });
+					uploadFile(newArtwork.artworkImages.primaryImage, itemId, 'primaryImage', newArtwork)
+					.then((url) => {
+						updateUrl(itemId,{'artworkImages.primaryImage':url});
+					})			        	
+					if(newArtwork.artworkImages.scaleImage != ''){
+						uploadFile(newArtwork.artworkImages.scaleImage, itemId, 'scaleImage', newArtwork)
+						.then((url) => {
+							updateUrl(itemId,{'artworkImages.scaleImage':url});
+						})	
+					}
+					if(newArtwork.artworkImages.detailImage != ''){
+						uploadFile(newArtwork.artworkImages.detailImage, itemId, 'detailImage', newArtwork)
+						.then((url) => {
+							updateUrl(itemId,{'artworkImages.detailImage':url});
+						})
+					}
+					uploadFile(newArtwork.artworkConfirmation.signature, itemId, 'signature', newArtwork)
+					.then((url) => {
+						updateUrl(itemId,{'artworkConfirmation.signature':url});
+					})
 			        if(newArtwork.artworkImages.additionalImage1 != ''){
-			        	uploadImage(`${artistId}/artwork/${itemId}/${newArtwork.artworkInformation.title.replace(/\s+/g, '-').toLowerCase()}-additionalImage1`, newArtwork.artworkImages.additionalImage1, 'image/jpeg', function(err, url){
-				        	updateUrl(itemId,{'artworkImages.additionalImage1':url});
-				        });	
+			        	uploadFile(newArtwork.artworkImages.additionalImage1, itemId, 'additionalImage1', newArtwork)
+						.then((url) => {
+							updateUrl(itemId,{'artworkImages.additionalImage1':url});
+						})
 			        }
 			        if(newArtwork.artworkImages.additionalImage2 != ''){
-			        	uploadImage(`${artistId}/artwork/${itemId}/${newArtwork.artworkInformation.title.replace(/\s+/g, '-').toLowerCase()}-additionalImage2`, newArtwork.artworkImages.additionalImage2, 'image/jpeg', function(err, url){
-				        	updateUrl(itemId,{'artworkImages.additionalImage2':url});
-				        });	
+			        	uploadFile(newArtwork.artworkImages.additionalImage2, itemId, 'additionalImage2', newArtwork)
+						.then((url) => {
+							updateUrl(itemId,{'artworkImages.additionalImage2':url});
+						})	
 			        }
 
 			      }
@@ -258,14 +287,6 @@ function isValid(newArtwork){
 		console.log("[ERROR] primaryImage mandatory");
 		return false;
 	}
-	if(!newArtwork.artworkImages.scaleImage){
-		console.log("[ERROR] scaleImage mandatory");
-		return false;
-	}
-	if(!newArtwork.artworkImages.detailImage){
-		console.log("[ERROR] detailImage mandatory");
-		return false;
-	}
 	if(!newArtwork.artworkConfirmation.confirmed){
 		console.log("[ERROR] confirmed mandatory");
 		return false;
@@ -339,35 +360,117 @@ updateUrl = function(id,update){
 	});
 }
 
+b64ToBlob = function(b64Data, contentType, sliceSize) {
+	let byteNumbers, i, slice;
+	let offset = 0;
+	let byteCharacters = atob(b64Data);
+	let byteArrays = [];
+	sliceSize = sliceSize || 512;
+	byteArrays = [];
+	while (offset < byteCharacters.length) {
+	  slice = byteCharacters.slice(offset, offset + sliceSize);
+	  byteNumbers = [];
+	  for (i = 0; i < slice.length; ++i) {
+		byteNumbers.push(slice.charCodeAt(i));
+	  }
+	  byteArrays.push(new Uint8Array(byteNumbers));
+	  offset += sliceSize;
+	}
+	return new Blob(byteArrays, {type: contentType});
+  }
 
-uploadImage = function(key, file, contentType, callback){
-	
-	fs.readFile(file, function (err, data) {
-		if (err) throw err;
+  function base64_encode(file) {
+    // read binary data
+    var bitmap = fs.readFileSync(file);
+    // convert binary data to base64 encoded string
+    return new Buffer(bitmap).toString('base64');
+}
 
-		var params = {
-			Key: key,
-			Body: data,
-			ACL: 'public-read',
-			ContentType: contentType
+uploadFileToAmazon = function(file, id, sufix, newArtwork) {
+    return new Promise((resolve, reject) => {
+		
+      console.log('weee')
+	  
+	  var params = {
+		Key: `${newArtwork.artistId}/artwork/${id}/${newArtwork.artworkInformation.title.replace(/\s+/g, '-').toLowerCase()}-${sufix}`,
+		Body: file,
+		ACL: 'public-read',
+		ContentType: 'image/jpeg'
 		}
 
 		s3.upload(params, function (err, data) {            
-            if (err) {
-                console.log('ERROR MSG: ', err);
-            } else {
-                console.log('Successfully uploaded data');
-                console.log(data.Location)
-                var url = data.Location;
-                callback(null,url);
-            }
-        });
+			if (err) {
+				console.log('ERROR MSG: ', err);
+			} else {
+				console.log('Successfully uploaded data');
+				console.log(data.Location)
+				var url = data.Location;
+				resolve(url)
+			}
+		});
+    });
+  }
 
+uploadFile = function(file, id, imageType, newArtwork) {
+    return new Promise((resolve, reject) => {
+      const title = newArtwork.artworkInformation.title;
+      const artistId = newArtwork.artistId;
 
-	})
+	  //var base64str = base64_encode(file);
+		uploadArtworkImage(file, id, title, imageType, artistId)
+		.then((response) => {
+			uploadFileToAmazon(response.w, id, imageType, newArtwork)
+			.then(function(url){
+				console.log(url);
+				resolve(url);
+			});
+			uploadFileToAmazon(response.t, id, imageType + '-thumb', newArtwork);
+		})      
+    });
+  }
 
-
-}
+/*
+RECEIVES IMAGE PATH
+RESOLVES WITH BASE64 IMAGE
+*/
+applyWatermark = function(file){
+	return new Promise((resolve, reject) => {
+	  const watermark = 'logo-watermark.png';
+	  gm(file)
+		.resize(600, 600)
+		.draw([`image Over 0,0 0,0 "${watermark}"`])
+		.toBuffer('PNG',function (err, buffer) {
+			if (err) return handle(err);
+			resolve(buffer)
+		})
+	});
+  }
+  
+createThumbnail = function(imageString){
+	return new Promise((resolve, reject) => {
+	  gm(imageString)
+	  .resize(150, 150)
+	  .toBuffer('PNG',function (err, buffer) {
+		if (err) return handle(err);
+		resolve(buffer)
+	  })
+	});
+  }
+  
+uploadArtworkImage = function(file, id, title, imageType, artistId){
+	  return new Promise((resolve, reject) => {
+		applyWatermark(file)
+		.then(function (watermarked){
+		  createThumbnail(watermarked)
+		  .then(function (thumb){
+			resolve({ w: watermarked, t: thumb });
+		  });
+		})
+		.catch(function (error){
+		  console.log(error)
+		});
+	  });
+};
 
 
 
