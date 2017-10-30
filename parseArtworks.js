@@ -2,7 +2,6 @@ var Baby = require('babyparse')
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var fs = require('fs');
-require('gm-base64');
 var gm = require('gm').subClass({ imageMagick: true });
 
 var AWS = require('aws-sdk');
