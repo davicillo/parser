@@ -437,7 +437,7 @@ applyWatermark = function(file){
 	  const watermark = 'logo-watermark.png';
 	  gm(file)
 		.resize(600, 600)
-		.draw([`image Over 0,0 0,0 "${watermark}"`])
+		//.draw([`image Over 0,0 0,0 "${watermark}"`])
 		.toBuffer('PNG',function (err, buffer) {
 			if (err) return handle(err);
 			resolve(buffer)
